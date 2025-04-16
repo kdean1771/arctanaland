@@ -3,13 +3,12 @@ const ctx = canvas.getContext('2d');
 const img = new Image();
 img.src = 'arctanamapiona.png'; // Replace with your own image path later
 
-ctx.imageSmoothingEnabled = false;
-
 let isDragging = false;
 let startX = 0, startY = 0, currentX = 0, currentY = 0;
 
 img.onload = () => {
   ctx.drawImage(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
 };
 
 const x = Math.floor((mouseX - offsetX) / scale);
