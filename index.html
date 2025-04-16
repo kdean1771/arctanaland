@@ -2,42 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactive Map Selector</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
-    #sidebar {
-      width: 200px;
-      padding: 1rem;
-      background-color: #f0f0f0;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    }
-    #canvas-container {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-      background: #222;
-    }
-    canvas {
-      image-rendering: pixelated;
-      cursor: crosshair;
-      display: block;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive Pixel Map</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="sidebar">
-    <h3>Selection Info</h3>
-    <p>Cells: <span id="cellCount">0</span></p>
-    <p>Price: $<span id="price">0</span></p>
-    <p>Tokens: <span id="tokens">0</span></p>
-  </div>
-  <div id="canvas-container">
+  <div class="container">
     <canvas id="mapCanvas"></canvas>
+    <div class="sidebar">
+      <h2>Selection Stats</h2>
+      <p><strong>Cells Selected:</strong> <span id="cellCount">0</span></p>
+      <p><strong>Price ($5/cell):</strong> $<span id="price">0</span></p>
+      <p><strong>Tokens (1 per $2000):</strong> <span id="tokens">0</span></p>
+    </div>
   </div>
+  <script src="script.js"></script>
+</body>
+</html>
