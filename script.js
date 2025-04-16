@@ -1,4 +1,3 @@
-/* File: script.js */
 const canvas = document.getElementById('mapCanvas');
 const ctx = canvas.getContext('2d');
 const img = new Image();
