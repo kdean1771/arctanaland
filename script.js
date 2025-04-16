@@ -3,7 +3,7 @@ const canvas = document.getElementById('mapCanvas');
     ctx.imageSmoothingEnabled = false;
 
     const image = new Image();
-    image.src = 'yourImage.png'; // replace with your image filename
+    image.src = 'arctanamapiona.png'; // replace with your image filename
 
     let selection = null;
     let dragging = false;
