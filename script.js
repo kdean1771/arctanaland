@@ -31,6 +31,10 @@ canvas.addEventListener('mouseup', () => {
   isDragging = false;
 });
 
+img.onerror = () => {
+  console.error('Image failed to load!');
+};
+
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0);
