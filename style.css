@@ -13,10 +13,6 @@ body {
   flex-wrap: wrap;
 }
 
-canvas {
-  image-rendering: pixelated;
-}
-
 #mapCanvas {
   border: 1px solid #ccc;
   image-rendering: pixelated;
