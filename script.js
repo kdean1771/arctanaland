@@ -12,6 +12,9 @@ img.onload = () => {
   ctx.drawImage(img, 0, 0);
 };
 
+const x = Math.floor((mouseX - offsetX) / scale);
+const y = Math.floor((mouseY - offsetY) / scale);
+
 canvas.addEventListener('mousedown', (e) => {
   const rect = canvas.getBoundingClientRect();
   startX = e.clientX - rect.left;
