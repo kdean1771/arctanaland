@@ -7,161 +7,37 @@
   <style>
     body {
       margin: 0;
+      display: flex;
+      height: 100vh;
       overflow: hidden;
       font-family: sans-serif;
     }
-    #ui {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 10;
+    #sidebar {
+      width: 200px;
+      padding: 1rem;
+      background-color: #f0f0f0;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    #canvas-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: #222;
     }
     canvas {
+      image-rendering: pixelated;
+      cursor: crosshair;
       display: block;
     }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <div><strong>Selected Cells:</strong> <span id="cells">0</span></div>
-    <div><strong>Price:</strong> $<span id="price">0</span></div>
-    <div><strong>Tokens:</strong> <span id="tokens">0</span></div>
+  <div id="sidebar">
+    <h3>Selection Info</h3>
+    <p>Cells: <span id="cellCount">0</span></p>
+    <p>Price: $<span id="price">0</span></p>
+    <p>Tokens: <span id="tokens">0</span></p>
   </div>
-  <canvas id="canvas"></canvas>
-  <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let scale = 1;
-    let originX = 0;
-    let originY = 0;
-
-    const img = new Image();
-    img.src = 'arctanamapiona.png'; // Replace with your actual image filename
-
-    const imgWidth = 2351;
-    const imgHeight = 1600;
-
-    let dragging = false;
-    let startX, startY;
-    let isSelecting = false;
-    let selectStart = null;
-    let selectEnd = null;
-
-    function draw() {
-      ctx.setTransform(scale, 0, 0, scale, originX, originY);
-      ctx.clearRect(-originX / scale, -originY / scale, canvas.width / scale, canvas.height / scale);
-
-      ctx.drawImage(img, 0, 0);
-
-      if (selectStart && selectEnd) {
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 1 / scale;
-        ctx.strokeRect(
-          Math.min(selectStart.x, selectEnd.x),
-          Math.min(selectStart.y, selectEnd.y),
-          Math.abs(selectEnd.x - selectStart.x),
-          Math.abs(selectEnd.y - selectStart.y)
-        );
-      }
-    }
-
-    function updateStats() {
-      if (selectStart && selectEnd) {
-        const x1 = Math.round(Math.min(selectStart.x, selectEnd.x));
-        const y1 = Math.round(Math.min(selectStart.y, selectEnd.y));
-        const x2 = Math.round(Math.max(selectStart.x, selectEnd.x));
-        const y2 = Math.round(Math.max(selectStart.y, selectEnd.y));
-
-        const selectedCells = (x2 - x1) * (y2 - y1);
-        const price = selectedCells * 5;
-        const tokens = Math.floor(price / 2000);
-
-        document.getElementById('cells').textContent = selectedCells;
-        document.getElementById('price').textContent = price;
-        document.getElementById('tokens').textContent = tokens;
-      } else {
-        document.getElementById('cells').textContent = 0;
-        document.getElementById('price').textContent = 0;
-        document.getElementById('tokens').textContent = 0;
-      }
-    }
-
-    canvas.addEventListener('mousedown', (e) => {
-      const x = (e.offsetX - originX) / scale;
-      const y = (e.offsetY - originY) / scale;
-      if (e.button === 0) {
-        isSelecting = true;
-        selectStart = { x, y };
-        selectEnd = { x, y };
-      } else if (e.button === 1 || e.button === 2) {
-        dragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-      }
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (isSelecting && selectStart) {
-        selectEnd = {
-          x: (e.offsetX - originX) / scale,
-          y: (e.offsetY - originY) / scale,
-        };
-        updateStats();
-        draw();
-      } else if (dragging) {
-        originX += e.clientX - startX;
-        originY += e.clientY - startY;
-        startX = e.clientX;
-        startY = e.clientY;
-        draw();
-      }
-    });
-
-    canvas.addEventListener('mouseup', (e) => {
-      if (isSelecting) {
-        isSelecting = false;
-        updateStats();
-        draw();
-      }
-      dragging = false;
-    });
-
-    canvas.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const scaleFactor = 1.1;
-      const mouseX = (e.offsetX - originX) / scale;
-      const mouseY = (e.offsetY - originY) / scale;
-
-      if (e.deltaY < 0) {
-        scale *= scaleFactor;
-        originX -= mouseX * (scaleFactor - 1) * scale;
-        originY -= mouseY * (scaleFactor - 1) * scale;
-      } else {
-        scale /= scaleFactor;
-        originX += mouseX * (1 - 1 / scaleFactor) * scale;
-        originY += mouseY * (1 - 1 / scaleFactor) * scale;
-      }
-      draw();
-    });
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      draw();
-    });
-
-    img.onload = () => {
-      draw();
-    };
-
-    window.addEventListener('contextmenu', e => e.preventDefault());
-  </script>
-</body>
-</html>
+  <div id="canvas-container">
+    <canvas id="mapCanvas"></canvas>
+  </div>
