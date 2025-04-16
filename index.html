@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Interactive Map Selector</title>
   <style>
     body {
@@ -10,6 +10,7 @@
       overflow: hidden;
       font-family: sans-serif;
     }
+
     #ui {
       position: absolute;
       top: 10px;
@@ -20,8 +21,11 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
       z-index: 10;
     }
+
     canvas {
       display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
   </style>
 </head>
@@ -32,18 +36,24 @@
     <div><strong>Tokens:</strong> <span id="tokens">0</span></div>
   </div>
   <canvas id="canvas"></canvas>
+
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+
+    // Make canvas fill screen
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    // Ensure crisp pixel drawing
+    ctx.imageSmoothingEnabled = false;
 
     let scale = 1;
     let originX = 0;
     let originY = 0;
 
     const img = new Image();
-    img.src = 'arctanamapiona.png'; // Replace with your actual image filename
+    img.src = 'arctanamapiona.png'; // Your image path
 
     const imgWidth = 2351;
     const imgHeight = 1600;
@@ -57,31 +67,36 @@
     function draw() {
       ctx.setTransform(scale, 0, 0, scale, originX, originY);
       ctx.clearRect(-originX / scale, -originY / scale, canvas.width / scale, canvas.height / scale);
-
       ctx.drawImage(img, 0, 0);
 
       if (selectStart && selectEnd) {
+        const x1 = Math.floor(Math.min(selectStart.x, selectEnd.x));
+        const y1 = Math.floor(Math.min(selectStart.y, selectEnd.y));
+        const x2 = Math.ceil(Math.max(selectStart.x, selectEnd.x));
+        const y2 = Math.ceil(Math.max(selectStart.y, selectEnd.y));
+
+        const width = x2 - x1;
+        const height = y2 - y1;
+
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 1 / scale;
-        ctx.strokeRect(
-          Math.min(selectStart.x, selectEnd.x),
-          Math.min(selectStart.y, selectEnd.y),
-          Math.abs(selectEnd.x - selectStart.x),
-          Math.abs(selectEnd.y - selectStart.y)
-        );
+        ctx.strokeRect(x1, y1, width, height);
       }
     }
 
     function updateStats() {
       if (selectStart && selectEnd) {
-        const x1 = Math.round(Math.min(selectStart.x, selectEnd.x));
-        const y1 = Math.round(Math.min(selectStart.y, selectEnd.y));
-        const x2 = Math.round(Math.max(selectStart.x, selectEnd.x));
-        const y2 = Math.round(Math.max(selectStart.y, selectEnd.y));
+        const x1 = Math.floor(Math.min(selectStart.x, selectEnd.x));
+        const y1 = Math.floor(Math.min(selectStart.y, selectEnd.y));
+        const x2 = Math.ceil(Math.max(selectStart.x, selectEnd.x));
+        const y2 = Math.ceil(Math.max(selectStart.y, selectEnd.y));
 
-        const selectedCells = (x2 - x1) * (y2 - y1);
+        const width = x2 - x1;
+        const height = y2 - y1;
+
+        const selectedCells = width * height;
         const price = selectedCells * 5;
-        const tokens = Math.floor(price / 2000);
+        const tokens = Math.ceil(price / 2000); // ROUND UP
 
         document.getElementById('cells').textContent = selectedCells;
         document.getElementById('price').textContent = price;
@@ -94,8 +109,9 @@
     }
 
     canvas.addEventListener('mousedown', (e) => {
-      const x = (e.offsetX - originX) / scale;
-      const y = (e.offsetY - originY) / scale;
+      const x = Math.floor((e.offsetX - originX) / scale);
+      const y = Math.floor((e.offsetY - originY) / scale);
+
       if (e.button === 0) {
         isSelecting = true;
         selectStart = { x, y };
@@ -110,8 +126,8 @@
     canvas.addEventListener('mousemove', (e) => {
       if (isSelecting && selectStart) {
         selectEnd = {
-          x: (e.offsetX - originX) / scale,
-          y: (e.offsetY - originY) / scale,
+          x: Math.floor((e.offsetX - originX) / scale),
+          y: Math.floor((e.offsetY - originY) / scale),
         };
         updateStats();
         draw();
