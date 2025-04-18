@@ -5,29 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Arctana Property Price Calculator</title>
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
+  body {
+    margin: 0;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
 
+  #ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    z-index: 10;
+    font-size: 16px;
+  }
+
+  @media (max-width: 600px) {
     #ui {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 10;
+      bottom: 10px;
+      top: auto;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      font-size: 18px;
+      line-height: 1.6;
+      text-align: center;
     }
 
-    canvas {
-      display: block;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+    #ui div {
+      margin: 4px 0;
     }
-  </style>
+  }
+
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+</style>
 </head>
 <body>
   <div id="ui">
