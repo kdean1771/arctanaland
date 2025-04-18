@@ -35,16 +35,16 @@ body {
 @media (max-width: 768px) {
   body {
     margin: 10px;
-    font-size: 4vw;
+    font-size: 18px;
   }
 
   #stats {
-    padding: 4vw;
-    font-size: 4vw;
+    padding: 12px;
+    font-size: 16px;
   }
 
   .note {
-    font-size: 3.5vw;
+    font-size: 14px;
   }
 
   #mapCanvas {
