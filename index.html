@@ -178,6 +178,69 @@
     };
 
     window.addEventListener('contextmenu', e => e.preventDefault());
+
+    let lastTouchDist = null;
+
+canvas.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    const touch = e.touches[0];
+    const x = Math.floor((touch.clientX - originX) / scale);
+    const y = Math.floor((touch.clientY - originY) / scale);
+    isSelecting = true;
+    selectStart = { x, y };
+    selectEnd = { x, y };
+    draw();
+  } else if (e.touches.length === 2) {
+    // Begin pinch zoom
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isSelecting) {
+    const touch = e.touches[0];
+    selectEnd = {
+      x: Math.floor((touch.clientX - originX) / scale),
+      y: Math.floor((touch.clientY - originY) / scale),
+    };
+    updateStats();
+    draw();
+  } else if (e.touches.length === 2 && lastTouchDist != null) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    const zoomFactor = dist / lastTouchDist;
+    lastTouchDist = dist;
+
+    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+    const mouseX = (centerX - originX) / scale;
+    const mouseY = (centerY - originY) / scale;
+
+    scale *= zoomFactor;
+    originX -= mouseX * (zoomFactor - 1) * scale;
+    originY -= mouseY * (zoomFactor - 1) * scale;
+    draw();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  if (isSelecting) {
+    isSelecting = false;
+    updateStats();
+    draw();
+  }
+
+  if (e.touches.length < 2) {
+    lastTouchDist = null;
+  }
+});
+
   </script>
 </body>
 </html>
