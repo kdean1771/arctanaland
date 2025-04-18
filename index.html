@@ -2,182 +2,227 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Arctana Property Price Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Grid Selector</title>
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       overflow: hidden;
       font-family: sans-serif;
     }
-
-    #ui {
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+    #stats {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px 10px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 10;
-    }
-
-    canvas {
-      display: block;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <div><strong>Blocks:</strong> <span id="cells">0</span></div>
-    <div><strong>Price:</strong> $<span id="price">0</span></div>
-    <div><strong>Business Tokens:</strong> <span id="tokens">0</span></div>
-  </div>
   <canvas id="canvas"></canvas>
+  <div id="stats">0 selected</div>
 
   <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const stats = document.getElementById("stats");
 
-    // Make canvas fill screen
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Ensure crisp pixel drawing
-    ctx.imageSmoothingEnabled = false;
-
+    let width, height;
+    let gridSize = 20;
+    let selected = new Set();
     let scale = 1;
     let originX = 0;
     let originY = 0;
-
-    const img = new Image();
-    img.src = 'arctanamapiona.png'; // Your image path
-
-    const imgWidth = 2351;
-    const imgHeight = 1600;
-
-    let dragging = false;
-    let startX, startY;
     let isSelecting = false;
     let selectStart = null;
     let selectEnd = null;
+    let dragging = false;
+    let dragStart = null;
+    let lastTouchDist = null;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      draw();
+    }
 
     function draw() {
-      ctx.setTransform(scale, 0, 0, scale, originX, originY);
-      ctx.clearRect(-originX / scale, -originY / scale, canvas.width / scale, canvas.height / scale);
-      ctx.drawImage(img, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(originX, originY);
+      ctx.scale(scale, scale);
 
-      if (selectStart && selectEnd) {
-        const x1 = Math.floor(Math.min(selectStart.x, selectEnd.x));
-        const y1 = Math.floor(Math.min(selectStart.y, selectEnd.y));
-        const x2 = Math.ceil(Math.max(selectStart.x, selectEnd.x));
-        const y2 = Math.ceil(Math.max(selectStart.y, selectEnd.y));
-
-        const width = x2 - x1;
-        const height = y2 - y1;
-
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 1 / scale;
-        ctx.strokeRect(x1, y1, width, height);
+      // Draw grid
+      ctx.strokeStyle = "#ccc";
+      for (let x = 0; x < width / scale; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height / scale);
+        ctx.stroke();
       }
+      for (let y = 0; y < height / scale; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width / scale, y);
+        ctx.stroke();
+      }
+
+      // Draw selected squares
+      ctx.fillStyle = "rgba(0, 128, 255, 0.5)";
+      selected.forEach((key) => {
+        const [x, y] = key.split(",").map(Number);
+        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+      });
+
+      // Draw selection rectangle
+      if (isSelecting && selectStart && selectEnd) {
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 1 / scale;
+        const x = Math.min(selectStart.x, selectEnd.x) * gridSize;
+        const y = Math.min(selectStart.y, selectEnd.y) * gridSize;
+        const w = (Math.abs(selectEnd.x - selectStart.x) + 1) * gridSize;
+        const h = (Math.abs(selectEnd.y - selectStart.y) + 1) * gridSize;
+        ctx.strokeRect(x, y, w, h);
+      }
+
+      ctx.restore();
     }
 
     function updateStats() {
-      if (selectStart && selectEnd) {
-        const x1 = Math.floor(Math.min(selectStart.x, selectEnd.x));
-        const y1 = Math.floor(Math.min(selectStart.y, selectEnd.y));
-        const x2 = Math.ceil(Math.max(selectStart.x, selectEnd.x));
-        const y2 = Math.ceil(Math.max(selectStart.y, selectEnd.y));
+      let x1 = Math.min(selectStart.x, selectEnd.x);
+      let y1 = Math.min(selectStart.y, selectEnd.y);
+      let x2 = Math.max(selectStart.x, selectEnd.x);
+      let y2 = Math.max(selectStart.y, selectEnd.y);
 
-        const width = x2 - x1;
-        const height = y2 - y1;
-
-        const selectedCells = width * height;
-        const price = selectedCells * 5;
-        const tokens = Math.ceil(price / 2000); // ROUND UP
-
-        document.getElementById('cells').textContent = selectedCells;
-        document.getElementById('price').textContent = price;
-        document.getElementById('tokens').textContent = tokens;
-      } else {
-        document.getElementById('cells').textContent = 0;
-        document.getElementById('price').textContent = 0;
-        document.getElementById('tokens').textContent = 0;
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          selected.add(`${x},${y}`);
+        }
       }
+
+      stats.textContent = `${selected.size} selected`;
     }
 
-    canvas.addEventListener('mousedown', (e) => {
-      const x = Math.floor((e.offsetX - originX) / scale);
-      const y = Math.floor((e.offsetY - originY) / scale);
+    function getMousePos(evt) {
+      return {
+        x: (evt.clientX - originX) / scale,
+        y: (evt.clientY - originY) / scale,
+      };
+    }
 
-      if (e.button === 0) {
-        isSelecting = true;
-        selectStart = { x, y };
-        selectEnd = { x, y };
-      } else if (e.button === 1 || e.button === 2) {
-        dragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-      }
+    canvas.addEventListener("mousedown", (e) => {
+      const pos = getMousePos(e);
+      const x = Math.floor(pos.x / gridSize);
+      const y = Math.floor(pos.y / gridSize);
+      isSelecting = true;
+      selectStart = { x, y };
+      selectEnd = { x, y };
+      draw();
     });
 
-    canvas.addEventListener('mousemove', (e) => {
-      if (isSelecting && selectStart) {
+    canvas.addEventListener("mousemove", (e) => {
+      if (isSelecting) {
+        const pos = getMousePos(e);
         selectEnd = {
-          x: Math.floor((e.offsetX - originX) / scale),
-          y: Math.floor((e.offsetY - originY) / scale),
+          x: Math.floor(pos.x / gridSize),
+          y: Math.floor(pos.y / gridSize),
         };
         updateStats();
         draw();
-      } else if (dragging) {
-        originX += e.clientX - startX;
-        originY += e.clientY - startY;
-        startX = e.clientX;
-        startY = e.clientY;
-        draw();
       }
     });
 
-    canvas.addEventListener('mouseup', (e) => {
+    canvas.addEventListener("mouseup", () => {
       if (isSelecting) {
         isSelecting = false;
         updateStats();
         draw();
       }
-      dragging = false;
     });
 
-    canvas.addEventListener('wheel', (e) => {
+    canvas.addEventListener("wheel", (e) => {
       e.preventDefault();
-      const scaleFactor = 1.1;
-      const mouseX = (e.offsetX - originX) / scale;
-      const mouseY = (e.offsetY - originY) / scale;
+      const mouseX = (e.clientX - originX) / scale;
+      const mouseY = (e.clientY - originY) / scale;
+      const delta = e.deltaY < 0 ? 1.1 : 0.9;
+      scale *= delta;
+      originX -= mouseX * (delta - 1) * scale;
+      originY -= mouseY * (delta - 1) * scale;
+      draw();
+    });
 
-      if (e.deltaY < 0) {
-        scale *= scaleFactor;
-        originX -= mouseX * (scaleFactor - 1) * scale;
-        originY -= mouseY * (scaleFactor - 1) * scale;
-      } else {
-        scale /= scaleFactor;
-        originX += mouseX * (1 - 1 / scaleFactor) * scale;
-        originY += mouseY * (1 - 1 / scaleFactor) * scale;
+    // Touch support
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const x = Math.floor((touch.clientX - originX) / scale / gridSize);
+        const y = Math.floor((touch.clientY - originY) / scale / gridSize);
+        isSelecting = true;
+        selectStart = { x, y };
+        selectEnd = { x, y };
+        draw();
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastTouchDist = Math.sqrt(dx * dx + dy * dy);
       }
-      draw();
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (e.touches.length === 1 && isSelecting) {
+        const touch = e.touches[0];
+        selectEnd = {
+          x: Math.floor((touch.clientX - originX) / scale / gridSize),
+          y: Math.floor((touch.clientY - originY) / scale / gridSize),
+        };
+        updateStats();
+        draw();
+      } else if (e.touches.length === 2 && lastTouchDist != null) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        const zoomFactor = dist / lastTouchDist;
+        lastTouchDist = dist;
+
+        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+        const mouseX = (centerX - originX) / scale;
+        const mouseY = (centerY - originY) / scale;
+
+        scale *= zoomFactor;
+        originX -= mouseX * (zoomFactor - 1) * scale;
+        originY -= mouseY * (zoomFactor - 1) * scale;
+        draw();
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (isSelecting) {
+        isSelecting = false;
+        updateStats();
+        draw();
+      }
+      if (e.touches.length < 2) {
+        lastTouchDist = null;
+      }
     });
 
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      draw();
-    });
-
-    img.onload = () => {
-      draw();
-    };
-
-    window.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener("resize", resize);
+    resize();
   </script>
 </body>
 </html>
