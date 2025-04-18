@@ -34,17 +34,17 @@ body {
 
 @media (max-width: 768px) {
   body {
-    margin: 10px;
-    font-size: 18px;
+    margin: 60px;
+    font-size: 80px;
   }
 
   #stats {
-    padding: 12px;
-    font-size: 16px;
+    padding: 20px;
+    font-size: 70px;
   }
 
   .note {
-    font-size: 14px;
+    font-size: 60px;
   }
 
   #mapCanvas {
