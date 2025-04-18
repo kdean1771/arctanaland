@@ -241,6 +241,45 @@ canvas.addEventListener('touchend', (e) => {
   }
 });
 
+    let lastPanTouches = null;
+
+canvas.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    lastPanTouches = [
+      { x: e.touches[0].clientX, y: e.touches[0].clientY },
+      { x: e.touches[1].clientX, y: e.touches[1].clientY }
+    ];
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2 && lastPanTouches) {
+    const currentTouches = [
+      { x: e.touches[0].clientX, y: e.touches[0].clientY },
+      { x: e.touches[1].clientX, y: e.touches[1].clientY }
+    ];
+
+    const avgLastX = (lastPanTouches[0].x + lastPanTouches[1].x) / 2;
+    const avgLastY = (lastPanTouches[0].y + lastPanTouches[1].y) / 2;
+    const avgCurrentX = (currentTouches[0].x + currentTouches[1].x) / 2;
+    const avgCurrentY = (currentTouches[0].y + currentTouches[1].y) / 2;
+
+    const dx = avgCurrentX - avgLastX;
+    const dy = avgCurrentY - avgLastY;
+
+    originX += dx;
+    originY += dy;
+
+    lastPanTouches = currentTouches;
+    draw();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  if (e.touches.length < 2) {
+    lastPanTouches = null;
+  }
+});
   </script>
 </body>
 </html>
