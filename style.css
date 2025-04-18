@@ -31,3 +31,24 @@ body {
   color: #888;
   margin-top: 10px;
 }
+
+@media (max-width: 768px) {
+  body {
+    margin: 10px;
+    font-size: 4vw;
+  }
+
+  #stats {
+    padding: 4vw;
+    font-size: 4vw;
+  }
+
+  .note {
+    font-size: 3.5vw;
+  }
+
+  #mapCanvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
