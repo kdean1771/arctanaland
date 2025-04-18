@@ -3,6 +3,15 @@ const ctx = canvas.getContext('2d');
 const img = new Image();
 img.src = 'arctanamapiona.png'; // Replace with your own image path later
 
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+
+// Fix for high DPI screens
+const scale = window.devicePixelRatio || 1;
+canvas.width = canvas.clientWidth * scale;
+canvas.height = canvas.clientHeight * scale;
+ctx.scale(scale, scale);
+
 let isDragging = false;
 let startX = 0, startY = 0, currentX = 0, currentY = 0;
 
